@@ -22,7 +22,7 @@ public class Payment {
     public Payment() {}
 
     public Payment(Long id, Instant moment) {
-        this.id = id;
+        this.id     = id;
         this.moment = moment;
     }
 
