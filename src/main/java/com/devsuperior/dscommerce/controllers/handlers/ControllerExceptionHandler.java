@@ -1,6 +1,7 @@
 package com.devsuperior.dscommerce.controllers.handlers;
 
 import com.devsuperior.dscommerce.dto.CustomErrorDTO;
+import com.devsuperior.dscommerce.services.exceptions.DatabaseException;
 import com.devsuperior.dscommerce.services.exceptions.ResourceNotFoundException;
 import jakarta.servlet.http.HttpServletRequest;
 import org.springframework.http.HttpStatus;
@@ -64,6 +65,30 @@ public class ControllerExceptionHandler {
     public ResponseEntity<CustomErrorDTO> resourceNotFound(ResourceNotFoundException e, HttpServletRequest request)
     {
         HttpStatus status = HttpStatus.NOT_FOUND;
+        CustomErrorDTO err = new CustomErrorDTO(
+                Instant.now(),
+                status.value(),
+                e.getMessage(),
+                request.getRequestURI()
+        );
+        return ResponseEntity.status(status).body(err);
+    }
+
+    /**
+     * Trata exceções do tipo {@link DatabaseException}.
+     *
+     * <p>Quando ocorre um erro de banco de dados, o metodo cria um
+     * {@link CustomErrorDTO} contendo informações sobre o erro e retorna
+     * uma resposta HTTP com status 400 (Bad Request).</p>
+     *
+     * @param e exceção lançada quando ocorre algum erro/conflito de banco de dados
+     * @param request requisição HTTP que originou a exceção
+     * @return resposta HTTP contendo o status 400 e os dados do erro
+     */
+    @ExceptionHandler(DatabaseException.class)
+    public ResponseEntity<CustomErrorDTO> database(DatabaseException e, HttpServletRequest request)
+    {
+        HttpStatus status = HttpStatus.BAD_REQUEST;
         CustomErrorDTO err = new CustomErrorDTO(
                 Instant.now(),
                 status.value(),
