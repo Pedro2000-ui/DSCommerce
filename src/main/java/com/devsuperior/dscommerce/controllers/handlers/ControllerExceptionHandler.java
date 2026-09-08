@@ -1,11 +1,14 @@
 package com.devsuperior.dscommerce.controllers.handlers;
 
 import com.devsuperior.dscommerce.dto.CustomErrorDTO;
+import com.devsuperior.dscommerce.dto.ValidationErrorDTO;
 import com.devsuperior.dscommerce.services.exceptions.DatabaseException;
 import com.devsuperior.dscommerce.services.exceptions.ResourceNotFoundException;
 import jakarta.servlet.http.HttpServletRequest;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.validation.FieldError;
+import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ControllerAdvice;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 
@@ -95,6 +98,34 @@ public class ControllerExceptionHandler {
                 e.getMessage(),
                 request.getRequestURI()
         );
+        return ResponseEntity.status(status).body(err);
+    }
+
+    /**
+     * Trata exceções do tipo {@link MethodArgumentNotValidException}.
+     *
+     * <p>Quando ocorre um erro de validação dos campos enviados, o metodo cria um
+     * {@link ValidationErrorDTO} contendo um array com informações sobre o(s) nome(s) do(s)
+     *             campo(s) e o(s) respectivo(s) erro(s) e retorna uma resposta HTTP com status 422 (Unprocessable Content).</p>
+     *
+     * @param e exceção lançada quando ocorre algum erro/conflito de banco de dados
+     * @param request requisição HTTP que originou a exceção
+     * @return resposta HTTP contendo o status 422 e os dados do(s) erro(s)
+     */
+    @ExceptionHandler(MethodArgumentNotValidException.class)
+    public ResponseEntity<CustomErrorDTO> methodArgumentNotValid(MethodArgumentNotValidException e, HttpServletRequest request)
+    {
+        HttpStatus status = HttpStatus.UNPROCESSABLE_CONTENT;
+        ValidationErrorDTO err = new ValidationErrorDTO(
+                Instant.now(),
+                status.value(),
+                "Dados inválidos",
+                request.getRequestURI()
+        );
+
+        for(FieldError f : e.getBindingResult().getFieldErrors()){
+            err.addError(f.getField(), f.getDefaultMessage());
+        }
         return ResponseEntity.status(status).body(err);
     }
 
