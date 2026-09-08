@@ -29,4 +29,19 @@ public class ProductService {
         return products.map(ProductDTO::new);
     }
 
+    @Transactional
+    public ProductDTO insert(ProductDTO product) {
+
+        Product entity = new Product();
+        entity.setName(product.getName());
+        entity.setDescription(product.getDescription());
+        entity.setPrice(product.getPrice());
+        entity.setImgUrl(product.getImgUrl());
+
+        entity = productRepository.save(entity);
+
+        return new ProductDTO(entity);
+
+    }
+
 }
